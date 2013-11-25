@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>goagr</title>
+  <script src="//code.jquery.com/jquery.js"></script>
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.2/html5shiv.js"></script>
+      <script src="//cdnjs.cloudflare.com/ajax/libs/respond.js/1.3.0/respond.js"></script>
+      <![endif]-->
+  </head>
+  <body>
+  <div class="container">
+  <div class="page-header">
+    <h1>Hello, world! <small>My experimental pictures aggregator</small> </h1>
+  </div>
+    <div class="row">
+      <div id="pictures" class="col-md-4 col-md-offset-4">
+        {{range .Pictures}}
+          <div style = "border-top: 1px solid #F1F1F1; padding: 5px 0 3px;">
+            <img src='{{.Link}}' data-id='{{.Id}}' class="img-responsive" width="320" height="320" />
+          </div>
+          <div style="min-height: 5px;"></div>
+        {{end}}
+      </div>
+    </div>
+  </div>
+
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script>
+      window.img_loading = false;
+      $(document).ready(function(){
+        console.log('test');
+        $(window).scroll(function(){
+            if( $(this).scrollTop() + 800 > $(document).height() ) {
+              if(!window.img_loading) {
+                window.img_loading = true;
+                $.ajax('/', {
+                  data: {
+                    q: $('img.img-responsive').last().data('id')
+                  },
+                  method: 'GET',
+                  success: function(data, textStatus, jqXHR) {
+                    pics = $.map(JSON.parse(data), function(val, index) {
+                      return "<div style = 'border-top: 1px solid #F1F1F1; padding: 5px 0 3px;'><img src='<%Link%>' data-id='<%Id%>' class='img-responsive' width='320' height='320' /></div><div style='min-height: 5px;'></div>".replace(/<%Link%>/, val.Link).replace(/<%Id%>/, val.Id);
+                    }).join('');
+                    console.log(pics);
+                    $('#pictures').append(pics);
+
+                    window.img_loading = false;
+                  },
+                  error: function(jqXHR, textStatus, errorThrown ){
+                    console.log(textStatus);
+                    window.img_loading = false;
+                  }
+                });
+              }
+            }
+        });
+      });
+
+    </script>
+  </body>
+  </html>
