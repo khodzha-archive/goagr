@@ -59,7 +59,7 @@ func get_md5(link string) string {
 }
 
 func main() {
-	page_size := 3
+	page_size := 8
 	db, err := sql.Open("postgres", "user=goagr dbname=goagr password=24268486555ss")
     defer db.Close()
 
@@ -90,6 +90,10 @@ func main() {
 			offset, _ := db.Query("SELECT COUNT(id) FROM posts WHERE id >= $1", offset_id)
 			offset.Next()
 			offset.Scan(&offset_posts)
+			close_err := offset.Close()
+			if close_err != nil {
+				fmt.Println(close_err)
+			}
 		}
 		rows, _ := db.Query("SELECT id, link FROM posts ORDER BY id DESC LIMIT $1 OFFSET $2", page_size, offset_posts)
 
