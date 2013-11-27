@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"html/template"
 	"strconv"
+	"github.com/kylelemons/go-gypsy/yaml"
 )
 
 type Pic struct {
@@ -58,9 +59,23 @@ func get_md5(link string) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
+func db_params() string {
+	data, _ := yaml.ReadFile("conf.yml")
+	yaml_user, _ := yaml.Child(data.Root, "user")
+	yaml_dbname, _ := yaml.Child(data.Root, "dbname")
+	yaml_password, _ := yaml.Child(data.Root, "password")
+	user := yaml_user.(yaml.Scalar).String()
+	dbname := yaml_dbname.(yaml.Scalar).String()
+	password := yaml_password.(yaml.Scalar).String()
+	db_pars := "user=" + user + " dbname=" + dbname + " password=" + password
+	fmt.Println(db_pars)
+	return db_pars
+}
+
 func main() {
 	page_size := 8
-	db, err := sql.Open("postgres", "user=goagr dbname=goagr password=24268486555ss")
+	
+	db, err := sql.Open("postgres", db_params())
     defer db.Close()
 
 	if err != nil {
@@ -90,10 +105,7 @@ func main() {
 			offset, _ := db.Query("SELECT COUNT(id) FROM posts WHERE id >= $1", offset_id)
 			offset.Next()
 			offset.Scan(&offset_posts)
-			close_err := offset.Close()
-			if close_err != nil {
-				fmt.Println(close_err)
-			}
+			offset.Close()
 		}
 		rows, _ := db.Query("SELECT id, link FROM posts ORDER BY id DESC LIMIT $1 OFFSET $2", page_size, offset_posts)
 
